@@ -248,7 +248,7 @@ Special thanks to the ERC-7683 working group for cross-chain intent standardizat
 
 - **GitHub:** [github.com/[your-username]/cross-chain-intent-explorer](https://github.com/Shubz224/-Cross-Chain-Intent-Explorer)
 - **Demo:** [Coming soon]
-- **Twitter:** [@your_handle]
+- **Twitter:** [https://x.com/shubhamnikamsn]
 
 ---
 
