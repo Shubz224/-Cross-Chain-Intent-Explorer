@@ -6,7 +6,6 @@ import {
   GlobalStats,
 } from "generated";
 
-// Nexus Solver address
 const SOLVER_ADDRESS = "0x247365225B96Cd8bc078F7263F6704f3EaD96494".toLowerCase();
 const USDC_DECIMALS = 6;
 
@@ -21,7 +20,7 @@ function getDateString(timestamp: number): string {
 
 /**
  * Handler for USDC Transfer events
- * Uses ONLY default fields available without field_selection
+ * Tracks all transfers involving the Nexus Solver
  */
 USDC.Transfer.handler(async ({ event, context }) => {
   const from = event.params.from.toLowerCase();
@@ -36,22 +35,31 @@ USDC.Transfer.handler(async ({ event, context }) => {
     return;
   }
 
-  // DEFAULT FIELDS ONLY (no field_selection needed)
-  const chainId = event.chainId;                              // ✅ Default
-  const logIndex = event.logIndex;                            // ✅ Default
-  const tokenAddress = event.srcAddress;                      // ✅ Default
-  const blockNumber = BigInt(event.block.number);             // ✅ Default
-  const blockTimestamp = BigInt(event.block.timestamp);       // ✅ Default
-  const blockHash = event.block.hash;                         // ✅ Default
+  // Extract event data
+  const chainId = event.chainId;
+  const logIndex = event.logIndex;
+  const tokenAddress = event.srcAddress;
+  const blockNumber = BigInt(event.block.number);
+  const blockTimestamp = BigInt(event.block.timestamp);
+  
+  // Transaction fields (requires field_selection in config)
+  const txHash = event.transaction.hash;
+  const gasUsed = event.transaction.gasUsed || 0n;
+  const gasPrice = event.transaction.gasPrice || 0n;
 
-  // Generate unique ID using block hash + log index (since no tx hash available)
-  const transactionId = `${chainId}-${blockHash}-${logIndex}`;
+  // ✅ CRITICAL FIX: Calculate userAddress
+  // If solver sent money → user is recipient (to)
+  // If solver received money → user is sender (from)
+  const userAddress = isFromSolver ? to : from;
 
-  // Create SolverTransaction entity
+  // Generate unique ID
+  const transactionId = `${chainId}-${txHash}-${logIndex}`;
+
+  // Create SolverTransaction entity with ALL required fields
   const solverTransaction: SolverTransaction = {
     id: transactionId,
     chainId,
-    txHash: blockHash,  // Using block hash as fallback since tx hash not available
+    txHash,
     blockNumber,
     blockTimestamp,
     logIndex,
@@ -63,21 +71,22 @@ USDC.Transfer.handler(async ({ event, context }) => {
     isFromSolver,
     isToSolver,
     solverAddress: SOLVER_ADDRESS,
+    userAddress, // ✅ ADDED: Required field for wallet search
     intentId: undefined,
-    gasUsed: 0n,  // Not available without field_selection
-    gasPrice: 0n, // Not available without field_selection
+    gasUsed,
+    gasPrice,
     createdAt: blockTimestamp,
   };
 
   context.SolverTransaction.set(solverTransaction);
 
-  // Update stats
-  await updateDailyStats(context, chainId, blockTimestamp, value, isFromSolver, isToSolver, from, to);
+  // Update aggregated stats
+  await updateDailyStats(context, chainId, blockTimestamp, value, isFromSolver, isToSolver);
   await updateGlobalStats(context, value, blockTimestamp, chainId, blockNumber);
 
-  // Log
+  // Enhanced logging
   context.log.info(
-    `Indexed solver tx: ${chainId} | Block ${blockNumber} | ${formatUSDC(value)} USDC`
+    `✅ Indexed: Chain ${chainId} | TX ${txHash.slice(0, 10)}... | User ${userAddress.slice(0, 8)}... | ${formatUSDC(value)} USDC`
   );
 });
 
@@ -87,9 +96,7 @@ async function updateDailyStats(
   timestamp: bigint,
   value: bigint,
   isFromSolver: boolean,
-  isToSolver: boolean,
-  from: string,
-  to: string
+  isToSolver: boolean
 ) {
   const dateString = getDateString(Number(timestamp));
   const statsId = `${chainId}-${dateString}`;
