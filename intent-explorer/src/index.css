@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-avail-dark text-avail-text-primary;
+    background: linear-gradient(135deg, #0B0D17 0%, #1A1D2E 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-avail-card border border-avail-border rounded-xl p-6 shadow-lg;
+  }
+  
+  .btn-primary {
+    @apply bg-avail-accent hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-avail-card hover:bg-gray-700 text-avail-text-primary border border-avail-border font-medium px-4 py-2 rounded-lg transition-colors;
+  }
+  
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium;
+  }
+  
+  .badge-success {
+    @apply badge bg-avail-success/20 text-avail-success;
+  }
+  
+  .badge-error {
+    @apply badge bg-avail-error/20 text-avail-error;
+  }
+  
+  .badge-warning {
+    @apply badge bg-avail-warning/20 text-avail-warning;
+  }
+  
+  .input {
+    @apply bg-avail-card border border-avail-border rounded-lg px-4 py-3 text-avail-text-primary placeholder-avail-text-muted focus:ring-2 focus:ring-avail-accent focus:border-transparent;
+  }
+}
