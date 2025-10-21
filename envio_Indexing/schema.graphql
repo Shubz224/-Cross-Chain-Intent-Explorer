@@ -45,6 +45,13 @@ type SolverTransaction @entity {
   """Solver address constant"""
   solverAddress: String!
   
+  """
+  🆕 CRITICAL: User address for wallet search
+  If isFromSolver=true, this is 'to' (solver sent to user)
+  If isToSolver=true, this is 'from' (user sent to solver)
+  """
+  userAddress: String!
+  
   """Related intent ID (will be populated in Phase 2)"""
   intentId: String
   
