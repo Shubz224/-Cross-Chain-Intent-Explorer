@@ -1,11 +1,10 @@
 # yaml-language-server: $schema=./node_modules/envio/evm.schema.json
-
-name: IntentScan
-description: Enhanced Nexus Intent Explorer - Indexing Solver Transactions
+name: avail-nexus-explorer
+description: Avail Nexus Intent Explorer
 unordered_multichain_mode: true
+raw_events: true
 preload_handlers: true
 
-# CRITICAL: Need transaction hash for Etherscan links
 field_selection:
   transaction_fields:
     - hash
@@ -15,44 +14,47 @@ field_selection:
     - gasPrice
 
 contracts:
-  - name: USDC
-    abi_file_path: ./abis/erc20.json
+  - name: VaultContractV2
+    abi_file_path: ./abis/vault_abi_v2.json
     handler: ./src/EventHandlers.ts
     events:
-      - event: "Transfer(address indexed from, address indexed to, uint256 value)"
+      - event: "Deposit(bytes32 indexed requestHash, address from, bool gasRefunded)"
+      - event: "Fill(bytes32 indexed requestHash, address from, address solver)"
+      - event: "Settle(uint256 indexed nonce, address[] solver, address[] token, uint256[] amount)"
 
 networks:
-  # Ethereum Sepolia - HyperSync auto-enabled
-  - id: 11155111
-    start_block: 0
-    contracts:
-      - name: USDC
-        address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
-
-  # Arbitrum Sepolia - HyperSync auto-enabled
   - id: 421614
     start_block: 0
     contracts:
-      - name: USDC
-        address: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"
+      - name: VaultContractV2
+        address: "0xF0111EdE031a4377C34A4AD900f1E633E41055Dc"
 
-  # Base Sepolia - HyperSync auto-enabled
-  - id: 84532
-    start_block: 0
-    contracts:
-      - name: USDC
-        address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
-
-  # Optimism Sepolia - HyperSync auto-enabled
   - id: 11155420
     start_block: 0
     contracts:
-      - name: USDC
-        address: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7"
+      - name: VaultContractV2
+        address: "0xF0111EdE031a4377C34A4AD900f1E633E41055Dc"
 
-  # Polygon Amoy - HyperSync auto-enabled
   - id: 80002
     start_block: 0
     contracts:
-      - name: USDC
-        address: "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582"
+      - name: VaultContractV2
+        address: "0xF0111EdE031a4377C34A4AD900f1E633E41055Dc"
+
+  - id: 84532
+    start_block: 0
+    contracts:
+      - name: VaultContractV2
+        address: "0xF0111EdE031a4377C34A4AD900f1E633E41055Dc"
+
+  - id: 11155111
+    start_block: 0
+    contracts:
+      - name: VaultContractV2
+        address: "0xF0111EdE031a4377C34A4AD900f1E633E41055Dc"
+
+  - id: 10143
+    start_block: 0
+    contracts:
+      - name: VaultContractV2
+        address: "0xF0111EdE031a4377C34A4AD900f1E633E41055Dc"

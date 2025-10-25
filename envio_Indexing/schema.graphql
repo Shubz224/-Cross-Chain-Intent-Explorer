@@ -1,161 +1,33 @@
-"""
-Represents a USDC transfer involving the Nexus Solver
-This captures on-chain transaction data that can be correlated with intents
-"""
-type SolverTransaction @entity {
-  """Unique ID: chainId-txHash-logIndex"""
+type DepositEvent @entity {
   id: ID!
-  
-  """Chain where this transaction occurred"""
+  requestHash: String! @index
+  depositor: String! @index
+  gasRefunded: Boolean!
   chainId: Int!
-  
-  """Transaction hash on the blockchain"""
-  txHash: String!
-  
-  """Block number where transaction was included"""
-  blockNumber: BigInt!
-  
-  """Block timestamp (Unix epoch)"""
-  blockTimestamp: BigInt!
-  
-  """Log index within the transaction"""
-  logIndex: Int!
-  
-  """USDC contract address on this chain"""
-  tokenAddress: String!
-  
-  """Sender address (from)"""
+  blockNumber: Int!
+  timestamp: Int!
+  txHash: String! @index
+}
+
+type FillEvent @entity {
+  id: ID!
+  requestHash: String! @index
   from: String!
-  
-  """Receiver address (to)"""
-  to: String!
-  
-  """USDC amount transferred (in smallest unit, 6 decimals)"""
-  value: BigInt!
-  
-  """USDC amount in human-readable format (value / 10^6)"""
-  valueUSD: Float!
-  
-  """Is this transaction FROM the solver? (outgoing)"""
-  isFromSolver: Boolean!
-  
-  """Is this transaction TO the solver? (incoming)"""
-  isToSolver: Boolean!
-  
-  """Solver address constant"""
-  solverAddress: String!
-  
-  """
-  🆕 CRITICAL: User address for wallet search
-  If isFromSolver=true, this is 'to' (solver sent to user)
-  If isToSolver=true, this is 'from' (user sent to solver)
-  """
-  userAddress: String!
-  
-  """Related intent ID (will be populated in Phase 2)"""
-  intentId: String
-  
-  """Gas used by this transaction"""
-  gasUsed: BigInt
-  
-  """Gas price in wei"""
-  gasPrice: BigInt
-  
-  """Created timestamp"""
-  createdAt: BigInt!
-}
-
-"""
-Placeholder for Intent metadata from Avail's explorer
-Will be populated in Phase 2 when we integrate Avail API
-"""
-type Intent @entity {
-  """Intent ID from Avail Nexus"""
-  id: ID!
-  
-  """User who created the intent"""
-  user: String
-  
-  """Source chain ID"""
-  sourceChainId: Int
-  
-  """Destination chain ID"""
-  destChainId: Int
-  
-  """Intent status (pending, completed, failed)"""
-  status: String
-  
-  """Source token"""
-  sourceToken: String
-  
-  """Destination token"""
-  destToken: String
-  
-  """Amount"""
-  amount: BigInt
-  
-  """Creation timestamp"""
-  createdAt: BigInt
-  
-  """Completion timestamp"""
-  completedAt: BigInt
-  
-  """Related solver transactions"""
-  transactions: [SolverTransaction!]! @derivedFrom(field: "intentId")
-}
-
-"""
-Daily statistics per chain
-Useful for analytics and dashboards
-"""
-type DailyStats @entity {
-  """Unique ID: chainId-date (YYYY-MM-DD)"""
-  id: ID!
-  
-  """Chain ID"""
+  solver: String! @index
   chainId: Int!
-  
-  """Date (YYYY-MM-DD)"""
-  date: String!
-  
-  """Total transactions involving solver"""
-  totalTransactions: BigInt!
-  
-  """Total USDC volume"""
-  totalVolumeUSD: Float!
-  
-  """Transactions FROM solver"""
-  outgoingTransactions: BigInt!
-  
-  """Transactions TO solver"""
-  incomingTransactions: BigInt!
-  
-  """Unique addresses interacting with solver"""
-  uniqueAddresses: Int!
-  
-  """Last updated timestamp"""
-  lastUpdated: BigInt!
+  blockNumber: Int!
+  timestamp: Int!
+  txHash: String! @index
 }
 
-"""
-Global solver statistics across all chains
-"""
-type GlobalStats @entity {
-  """Singleton ID (always '1')"""
+type SettleEvent @entity {
   id: ID!
-  
-  """Total transactions across all chains"""
-  totalTransactions: BigInt!
-  
-  """Total USDC volume across all chains"""
-  totalVolumeUSD: Float!
-  
-  """Number of unique addresses"""
-  uniqueAddresses: Int!
-  
-  """Last indexed block per chain (JSON string)"""
-  lastIndexedBlocks: String!
-  
-  """Last updated timestamp"""
-  lastUpdated: BigInt!
+  nonce: String! @index
+  solvers: [String!]!
+  tokens: [String!]!
+  amounts: [String!]!
+  chainId: Int!
+  blockNumber: Int!
+  timestamp: Int!
+  txHash: String! @index
 }
