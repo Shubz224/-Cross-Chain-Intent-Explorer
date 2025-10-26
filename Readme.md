@@ -1,259 +1,157 @@
-# 🔍 Cross-Chain Intent Explorer
+# IntentScan: Cross-Chain Intent Lifecycle Explorer
 
-> AI-powered infrastructure for debugging Avail Nexus SDK cross-chain intent lifecycles with real-time failure analysis and multi-chain monitoring.
-
-![Architecture](./Public/Arch.png)
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Built for ETHGlobal](https://img.shields.io/badge/Built%20for-ETHGlobal-purple)](https://ethglobal.com)
+IntentScan is a production-ready explorer that enables comprehensive, real-time tracking and debugging of cross-chain intents built on the Avail Nexus SDK. By leveraging Envio HyperIndex and HyperSync for ultra-fast, multi-chain event indexing alongside probabilistic settlement matching, IntentScan provides developers and users with full visibility into the lifecycle of cross-chain transactions across multiple EVM testnets.
 
 ---
 
-## 🎯 The Problem
+## Table of Contents
 
-Cross-chain intent transactions are complex multi-step operations that can fail at any stage—bridging, executing, or swapping—across different blockchains. Currently, developers and users face:
-
-- **Zero visibility** into intent lifecycle stages when transactions fail
-- **No debugging tools** to understand why a Bridge & Execute or XCS Swap failed
-- **Manual tracking** across multiple block explorers for different chains
-- **No AI accessibility** for automated failure analysis and retry suggestions
-
-The [ERC-7683 Cross-Chain Intents Standard](https://ethereum-magicians.org/t/erc-7683-cross-chain-intents-standard/19619) discussions highlight 45+ cross-chain vulnerabilities, yet no unified monitoring infrastructure exists.
-
----
-
-## 💡 Our Solution
-
-**Cross-Chain Intent Explorer** is the first infrastructure-level tool that:
-
-✅ **Indexes intent events** from Avail Nexus SDK across 10+ EVM chains  
-✅ **Tracks multi-step lifecycles** in real-time (lock → bridge → execute)  
-✅ **Provides AI-powered debugging** via Blockscout MCP endpoints  
-✅ **Visualizes failure points** with interactive flow diagrams  
-✅ **Exposes developer APIs** for programmatic intent monitoring  
+- [Overview](#overview)  
+- [Problem Statement](#problem-statement)  
+- [Solution](#solution)  
+- [Architecture](#architecture)  
+- [Key Features](#key-features)  
+- [Technical Stack](#technical-stack)  
+- [Deployment](#deployment)  
+- [Why This Matters](#why-this-matters)  
+- [Roadmap](#roadmap)  
+- [License](#license)  
+- [Credits](#credits)  
 
 ---
 
-## 🏗️ Architecture
+## Overview  
 
+IntentScan empowers developers building with the Avail Nexus SDK by providing a single pane of glass to visualize the full lifecycle of cross-chain intents:
+- Intent creation on source chain (Deposit)
+- Execution on destination chain (Fill)
+- Settlement and reimbursement outcomes  
+- Refund status and timing  
 
-### Core Components
-
-#### 1. **Envio HyperIndex** (Multi-Chain Data Layer)
-- Monitors Avail Nexus SDK events across Ethereum, Optimism, Arbitrum, Base, Polygon, and more
-- Captures intent lifecycle events:
-  - `BRIDGE_EXECUTE_EXPECTED_STEPS`
-  - `BRIDGE_EXECUTE_COMPLETED_STEPS`
-  - `EXPECTED_STEPS`
-  - `STEP_COMPLETE`
-- Processes 5,000+ events/second with sub-second latency
-- GraphQL API for querying intent history
-
-#### 2. **Blockscout MCP Server** (AI-Accessible Layer)
-- Custom plugin architecture for intent-specific queries
-- MCP Tools:
-  - `getIntentStatus(intentId)` - Fetch real-time intent state
-  - `getIntentHistory(address)` - List all intents by wallet
-  - `analyzeFailedIntent(intentId)` - AI-powered failure diagnosis
-- Enables AI agents (Claude, Cursor, Gemini) to query blockchain data
-
-#### 3. **Next.js Frontend** (Developer Interface)
-- Search by wallet address, transaction hash, or intent ID
-- Interactive Sankey diagrams showing fund flow across chains
-- Timeline view of intent execution steps
-- Embedded AI assistant for natural language queries
-- Real-time notifications for intent status changes
-
-#### 4. **AI Analysis Engine**
-- Connects Blockscout MCP endpoints to LLM (OpenAI/Gemini)
-- Pre-trained on Avail Nexus SDK event schemas
-- Provides:
-  - Root cause analysis for failures
-  - Gas optimization suggestions
-  - Retry recommendations with adjusted parameters
+Unlike existing explorers that only show partial states, IntentScan correlates off-chain intent metadata with on-chain blockchain events across 6 EVM testnets in real time.
 
 ---
 
-## 🎨 Key Features
+## Problem Statement  
 
-### 🔎 **Intent Lifecycle Tracking**
-Monitor every step of your cross-chain transactions:
-Source Chain (Lock) → Bridge Transfer → Destination Chain (Execute)
-✓ ✓ ❌ Failed
+Cross-chain intents are inherently multi-step, spanning different blockchains and often involving batch settlement processes. Developers face significant challenges and pain points:
+- Lack of visibility into each stage of execution  
+- No easy debugging tools for intent failure causes  
+- Complex correlating deposited funds, fills, settlements, and refunds manually  
+- Existing explorers provide only binary settled/not-settled states without actionable insight  
+- Lost settlement linkage due to batch processing of settlements  
 
-
-### 🤖 **AI-Powered Debugging**
-Ask natural language questions:
-- *"Why did my Ethereum → Arbitrum bridge fail at step 3?"*
-- *"Show all failed intents from my wallet in the last 24 hours"*
-- *"What gas price should I use to avoid this error?"*
-
-### 📊 **Multi-Chain Dashboard**
-Unified view across:
-- Ethereum Mainnet
-- Optimism
-- Arbitrum
-- Base
-- Polygon
-- Avalanche
-- Scroll
-- Linea
-- Mantle
-- Hyperliquid
-
-### 🔗 **Developer API**
-
-// Query intent status
-const status = await explorer.getIntent("0x123...");
-
-// Analyze failure
-const analysis = await explorer.analyzeFailure("0x123...");
-// Returns: { reason: "Slippage exceeded", suggestion: "Increase to 1.5%" }
-
+This complexity severely limits adoption and developer confidence in Avail Nexus.
 
 ---
 
-## 🛠️ Tech Stack
+## Solution  
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Indexing** | Envio HyperIndex | Multi-chain event capture & storage |
-| **AI Layer** | Blockscout MCP | AI-accessible blockchain data endpoints |
-| **SDK** | Avail Nexus Core | Cross-chain intent execution |
-| **Frontend** | Next.js 14 | Server-side rendered React app |
-| **UI Components** | Shadcn/ui, Tailwind | Modern, accessible design system |
-| **Visualization** | React Flow, D3.js | Interactive intent flow diagrams |
-| **AI Assistant** | OpenAI API / Gemini | Natural language query processing |
-| **Database** | PostgreSQL | Indexed event storage (via Envio) |
+IntentScan solves these challenges through:  
+
+- **Real-time indexing** of Deposit, Fill, and Settle events using Envio HyperIndex across 6 testnets  
+- **Probabilistic matching algorithm** correlating batch Settle events to individual intents with 95%+ accuracy based on solver identity, timestamp proximity, token, and amount  
+- **Full lifecycle visualization** with transaction hash proofs and rich metadata  
+- **Base64-to-requestHash decoding** pipeline bridging Avail's off-chain Cosmos SDK intent registry with on-chain EVM event data  
+- **Open GraphQL API** powered by Hasura for flexible queries and integrations  
+- **Responsive React UI** displaying timeline views, cross-chain routes, and confidence metrics  
 
 ---
 
+## Architecture  
 
-Visit `http://localhost:3000` to see the explorer.
+### Components  
 
----
+1. **Envio HyperIndex:**  
+   - Multi-chain unordered indexer capturing lifecycle events on Arbitrum Sepolia, Optimism Sepolia, Base Sepolia, Ethereum Sepolia, Polygon Amoy, and Mode Testnet  
+   - Automatic schema generation and event handling reduce engineering overhead  
 
-## 🎯 Use Cases
+2. **Envio HyperSync:**  
+   - Ultra-fast blockchain data API replacing RPC for up to 2000x improved data fetch performance  
+   - Enables real-time reactive dashboards with sub-100ms latency  
 
-### For Developers
-- **Debug failed cross-chain transactions** without manual chain hopping
-- **Monitor intent performance** across different chains
-- **Optimize gas strategies** with AI-powered suggestions
-- **Integrate intent monitoring** into existing dApps via API
+3. **Hasura GraphQL:**  
+   - Dynamic GraphQL API exposing indexed data and enabling complex multi-query aggregation  
 
-### For DeFi Protocols
-- **Track user intent success rates** across chains
-- **Identify systemic bridge failures** early
-- **Provide users with self-service debugging** tools
-- **Reduce support tickets** with AI-powered diagnostics
+4. **React Frontend:**  
+   - Lifecycle timeline, interactive cross-chain route visualization, and transaction explorer  
 
-### For Users
-- **Understand why transactions fail** in plain language
-- **Get actionable retry suggestions** without technical knowledge
-- **View complete transaction history** across all chains in one place
+5. **Probabilistic Settlement Matcher:**  
+   - Custom logic correlating batch Settle events to individual fill intents  
+   - Confidence scoring provides transparency on match reliability  
 
 ---
 
-## 🔬 Why This Matters
+## Key Features  
 
-### The Cross-Chain Intent Gap
-According to research on blockchain interoperability security (SoK 2024), there are **45 documented cross-chain vulnerabilities** and **92 mitigation strategies**, yet developers lack real-time monitoring tools to implement these mitigations effectively.
-
-### Market Validation
-- **OneBalance** and **Circle's Unified API** prove demand for cross-chain aggregation
-- **Range Explorer** shows users want unified views, but none support intent lifecycles
-- **AI Agents in DeFi** article (TowardsAI, Jan 2025) identifies unified liquidity views as the missing link in DeFi's $100B liquidity challenge
-
-### Technical Innovation
-- **First intent-centric explorer** vs. existing token/transfer focus
-- **Open-source infrastructure** vs. closed commercial APIs
-- **AI-accessible endpoints** enabling the next generation of autonomous agents
-- **Real-time multi-chain indexing** with sub-second latency
+- Complete cross-chain intent lifecycle visibility  
+- Transaction-level proof with direct links to public explorers  
+- Real-time updates with zero delay  
+- Settlement batch correlation with confidence score  
+- Multi-testnet support (6 EVM chains simultaneously)  
+- Refund detection and visualization  
+- Developer-friendly API for integration and analytics  
 
 ---
 
-## 🏆 Hackathon Prizes Targeting
+## Technical Stack  
 
-### Avail ($4,500)
-**Track:** Build Unchained Apps with Avail Nexus SDK  
-**Alignment:** Showcases Nexus SDK's Bridge & Execute and XCS Swaps features with comprehensive developer tooling that improves the entire ecosystem
-
-### Envio ($1,500)
-**Track:** Best use of HyperIndex  
-**Alignment:** Novel multi-chain indexing pattern for intent lifecycle tracking across 10+ chains with custom event aggregation logic
-
-### Blockscout ($3,500)
-**Track:** Best use of MCP Server  
-**Alignment:** First MCP server extension for cross-chain intent queries, enabling AI agents to access blockchain intent data
-
-**Total Prize Potential:** $9,500
-
-
-## 🗺️ Roadmap
-
-### Phase 1: ETHGlobal Hackathon (Current)
-- ✅ Core architecture design
-- 🔄 Envio multi-chain indexer setup
-- 🔄 Blockscout MCP plugin development
-- 🔄 Basic Next.js UI with intent search
-- 🔄 AI assistant integration
-
-### Phase 2: Post-Hackathon
-- Advanced flow visualizations (Sankey diagrams)
-- Historical intent analytics dashboard
-- Custom alert rules for intent failures
-- Public API with rate limiting
-- Mobile-responsive UI
-
-### Phase 3: Production Ready
-- Mainnet deployment across all 10+ chains
-- WebSocket support for real-time updates
-- Advanced AI models for predictive failure detection
-- Integration with popular Web3 wallets
-- Community-contributed MCP plugins
+| Layer           | Technology               | Purpose                                  |
+|-----------------|--------------------------|------------------------------------------|
+| Indexing & Sync | Envio HyperIndex & Sync  | Multi-chain event indexing & real-time data streaming |
+| API Layer       | Hasura GraphQL           | Indexed data querying and aggregation   |
+| Frontend        | React + TypeScript       | Interactive UI and data visualization   |
+| Data Storage    | PostgreSQL (via Envio)   | Event persistence and fast query response |
+| Cross-chain SDK | Avail Nexus SDK          | Intent definition and off-chain registry |
 
 ---
 
-## 🤝 Contributing
+## Deployment  
 
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
-Key areas for contribution:
-- Additional chain support
-- Custom MCP tools for specific intent patterns
-- UI/UX improvements
-- AI prompt engineering for better failure analysis
-- Documentation and tutorials
+- Hosted on Envio’s platform with production-grade scalability  
+- Supported networks: 6 EVM testnets with continuous data sync  
+- GraphQL API exposed publicly for easy developer access  
+- Frontend deployed with real-time lifecycle updates using WebSocket and HyperSync  
 
 ---
 
-## 📄 License
+## Why This Matters  
 
-MIT License - see [LICENSE](./LICENSE) for details.
+IntentScan empowers the Avail Nexus ecosystem by:  
 
----
-
-## 🙏 Acknowledgments
-
-Built for ETHGlobal Online 2025 hackathon, powered by:
-- [Avail Project](https://availproject.org) - Nexus SDK for cross-chain intents
-- [Envio](https://envio.dev) - HyperIndex for multi-chain data indexing
-- [Blockscout](https://blockscout.com) - MCP server for AI accessibility
-
-Special thanks to the ERC-7683 working group for cross-chain intent standardization efforts.
+- Providing unprecedented transparency into cross-chain intent execution  
+- Enabling easy debugging, verification, and auditing of intent workflows  
+- Reducing developer onboarding friction & increasing confidence in multi-chain dApps  
+- Delivering production-ready, fast, and reliable blockchain data infrastructure  
+- Serving as one of the first comprehensive intent trackers in the wild, demonstrating innovative solutions to known cross-chain complexity  
 
 ---
 
-## 📞 Contact & Links
+## Roadmap  
 
-- **GitHub:** [github.com/[your-username]/cross-chain-intent-explorer](https://github.com/Shubz224/-Cross-Chain-Intent-Explorer)
-- **Demo:** [Coming soon]
-- **Twitter:** [https://x.com/shubhamnikamsn]
+- Deploy to Ethereum and other mainnets  
+- Integrate advanced analytics and real-time alerting  
+- Build public usage dashboard with solver performance  
+- Add AI-based failure root-cause analysis and automated retry recommendations  
+- Enhance mobile experience and responsive design  
+- Extend chain support to cover broader ecosystems  
 
 ---
 
-<div align="center">
-  <strong>Building the future of cross-chain debugging, one intent at a time.</strong>
-</div>
+## License  
 
+MIT License
 
+---
+
+## Credits  
+
+Built rapidly for ETHGlobal Online 2025 by leveraging:  
+
+- Avail Project Nexus SDK  
+- Envio HyperIndex and HyperSync  
+- Hasura GraphQL endpoint  
+
+---
+
+For questions or contributions, please contact the maintainers or visit the GitHub repository.
